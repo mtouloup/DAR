@@ -1,0 +1,4 @@
+Training:
+  Episodes: 10            # Number of training episodes
+  Nodes: [4, 6]           # Range: number of nodes (min, max)
+  Pods: [10, 20]          # Range: number of pods (min, max)
