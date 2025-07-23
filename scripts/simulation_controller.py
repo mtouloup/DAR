@@ -8,12 +8,12 @@ from cutsimulator.workload.workload_synthesizer import WorkloadSynthesizer
 from cutsimulator.utils.utility import load_configs, setup_logger
 from cutsimulator.simulator.simulator import Simulator
 
-if __name__ == "__main__":
+def main():
+    """Run a single simulation using the provided configuration file(s)."""
     if len(sys.argv) < 2:
-        print("Usage: python3 simulator.py config.yaml")
+        print("Usage: simulation-controller <config.yaml>")
         sys.exit(1)
-    
-    # Setup logging system
+
     setup_logger(level="INFO", log_file="simulator.log")
     yaml_files = sys.argv[1:]
     config = load_configs(yaml_files)
@@ -24,3 +24,7 @@ if __name__ == "__main__":
 
     simulator = Simulator(config)
     simulator.run_simulation(cluster, scheduler, tasks)
+
+
+if __name__ == "__main__":
+    main()
