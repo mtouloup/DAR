@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "cutsimulator"
 version = "0.1.0"
 description = "Kubernetes workload simulator"
-readme = "README.md"
+readme = "Readme.md"
 requires-python = ">=3.8"
 authors = [{name = "CUT"}]
 license = {text = "MIT"}
@@ -25,3 +25,7 @@ dependencies = [
 cluster-controller = "scripts.cluster_controller:main"
 simulation-controller = "scripts.simulation_controller:main"
 training-controller = "scripts.training_controller:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cutsimulator*"]
