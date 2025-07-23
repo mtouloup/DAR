@@ -1,7 +1,0 @@
-Workload:
-  Pods:
-    Number: 6
-    CPU Dist: {type: normal, mean: 2000, stdev: 500, min: 500, max: 4000, round: -2} # in millicores
-    Mem Dist: {type: normal, mean: 3000, stdev: 2000, min: 1000, max: 5000, round: -1} # in Mi
-    Interarrival Dist: {type: poisson, mean: 5, min: 3, max: 6} # in seconds
-    Duration Dist: {type: poisson, mean: 4, min: 2, max: 9} # in seconds

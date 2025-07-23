@@ -1,0 +1,45 @@
+# Cluster 
+cluster_type: Python  # KWOK or Python
+cluster_reset: True    # True: Clear existing cluster, False: Append to existing cluster
+cluster_nodes: 10    # Number of nodes
+cluster_nodes_cpu_dist: {type: poisson, mean: 5000, min: 1000, max: 8000, round: -2} # in millicores
+cluster_nodes_mem_dist: {type: normal, mean: 6000, stdev: 2000, min: 2000, max: 8000, round: -1} # in Mi
+
+# Workload
+workload_tasks: 8
+workload_pods_number_dist: {type: uniform, min: 2, max: 6}  # Distribution of number of pods in each task
+workload_pods_cpu_dist: {type: normal, mean: 1000, stdev: 500, min: 500, max: 3000, round: -2} # in millicores
+workload_pods_mem_dist: {type: normal, mean: 2000, stdev: 2000, min: 1000, max: 3000, round: -1} # in Mi
+workload_pods_interarrival_dist: {type: poisson, mean: 5, min: 3, max: 6} # in seconds
+workload_pods_duration_dist: {type: poisson, mean: 4, min: 2, max: 9} # in seconds
+workload_pods_max_restarts: 5 # The number of times a pending pod can be restarted (Crashloop error of K8s)
+
+# Simulation
+simulation_speedup: 0  # 1=real-time, 0=infinite, other numbers=speedup factor
+simulation_detail_statistics: True # Detailed statistics of Simulation will be saved
+simulation_save_trace: True # store simulation Trace
+
+# Scheduler
+scheduler_type: ROUNDROBIN  # DAROTRAIN or ROUNDROBIN or DEFAULT
+
+# Traning parameters for DAROTRAIN
+scheduler_daro_output_dims: 10     # actions/bids
+scheduler_daro_hidden_dims: 64
+scheduler_daro_LearningRate: 0.005
+scheduler_daro_GAMMA: 0.99
+scheduler_daro_Update_target_every: 200
+scheduler_daro_DoubleQ: True
+scheduler_daro_Epsilon: 0.1
+scheduler_daro_Replay_buffer_size: 5000
+scheduler_daro_BatchSize: 32
+scheduler_daro_Mixing_embed_dim: 32
+scheduler_daro_Hypernet_layers: 2
+scheduler_daro_Hypernet_embed: 64
+scheduler_daro_reward_type: Coop_LB_reward  # Load Balancing reward
+
+# Traning
+training_episodes: 10                # Number of training episodes
+training_nodes_per_episode_min: 4    # Min number of nodes per episode
+training_nodes_per_episode_max: 6    # Max number of nodes per episode
+training_tasks_per_episode_min: 4    # Min number of tasks per episode
+training_tasks_per_episode_max: 8    # Max number of tasks per episode

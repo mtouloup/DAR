@@ -1,131 +1,120 @@
+# K8s Workload Simulator
 
-# Simulator Usage
+A modular and extensible simulator for evaluating diverse pod scheduling strategies in Kubernetes-like environments. Supports customizable clusters, workloads, and schedulers — including rule-based and learning-based approaches.
 
-## Prerequisites
-
-- [KWOK](https://kwok.sigs.k8s.io/docs/user/installation/) must be installed and configured for KWOK-based simulation.
-- `kubectl` must be installed and configured for Kubernetes access.
-- Python 3.8+ environment with required packages (`PyYAML`, `kubernetes`, etc.)
 
 ---
 
-## Simulator Overview
+##  Prerequisites
 
-This simulator enables training and evaluation of scheduling strategies (including **multi-agent reinforcement learning**) in a Kubernetes-like cluster environment.
+- Python 3.8+
+- Install dependencies:
+  ```bash
+  pip install -r requirements.txt
+  ```
 
-Supports:
-
-- **KWOKCluster**: Real Kubernetes pod simulation via KWOK
-- **PythonCluster**: Lightweight Python-only emulation
-- **Schedulers**: 
-  - `DEFAULT`: Kubernetes Native Scheduler
-  - `DARO`: Decentralized Agent-based Reinforcement Optimizer using QMIX
-  - `RoundRobin`: RoundRobin assignment of pods
-
----
-
-## Step 1: Define Your Cluster
-
-Define your cluster characteristics in `cluster_descriptor.yaml`:
-
-```yaml
-Cluster:
-  Type: KWOK  # KWOK or Python
-  Reset: True    # True: Clear existing cluster, False: Append to existing cluster
-  Nodes:
-    Number: 10    # Number of nodes
-    CPU Dist: {type: poisson, mean: 5000, min: 1000, max: 8000, round: -2} # in millicores
-    Mem Dist: {type: normal, mean: 6000, stdev: 2000, min: 2000, max: 8000, round: -1} # in Mi
- ```
-
-## Step 2: Define Your Workload
-
-Define your workload characteristics in `workload_descriptor.yaml`:
-
-```yaml
-Workload:
-  Pods:
-    Number: 6
-    CPU Dist: {type: normal, mean: 2000, stdev: 500, min: 500, max: 4000, round: -2} # in millicores
-    Mem Dist: {type: normal, mean: 3000, stdev: 2000, min: 1000, max: 5000, round: -1} # in Mi
-    Interarrival Dist: {type: poisson, mean: 5, min: 3, max: 6} # in seconds
-    Duration Dist: {type: poisson, mean: 4, min: 2, max: 9} # in seconds
-```
-
-## Step 3: Configure Scheduler Configurations
-
-Define your scheduler characteristics in `scheduler_descriptor.yaml`:
-
-```yaml
-Scheduler:
-  Type: DARO  # DARO or ROUNDROBIN or DEFAULT
-  Params:      # Apply only to DARO
-    output_dims: 11     # actions/bids
-    LearningRate: 0.001
-    GAMMA: 0.99
-    Epsilon: 0.1
-    Replay_buffer_size: 1000
-    BatchSize: 32
-  Reward:
-    Type: LB_reward  # Load Balancing reward
-  SimSpeedup: 1  # 1=real-time, 0=infinite, other numbers=speedup factor
-```
-
-## Step 4: Configure Training Configurations
-
-Update `training_config.yaml`:
-
-```yaml
-Training:
-  Episodes: 10            # Number of training episodes
-  Nodes: [4, 6]           # Range: number of nodes (min, max)
-  Pods: [10, 20]          # Range: number of pods (min, max)
-```
+- For **KWOK-based clusters**:
+  - Install [KWOK](https://kwok.sigs.k8s.io/docs/user/installation/)
+  - Ensure `kubectl` is configured
 
 ---
 
-## Step 5: Run Training
+## Standalone Simulation
 
-To start multi-episode training:
+To run a one-time simulation:
 
 ```bash
-python3 training_controller.py cluster_descriptor.yaml workload_descriptor.yaml scheduler_descriptor.yaml training_descriptor.yaml
+python3 scripts/simulation_controller.py configs/config.yaml
 ```
 
-This will:
-- Loads all descriptor files (order does not matter)
-- Randomizes number of nodes/pods for each episode
-- Resets the cluster before each episode
-- Applies the scheduler (`DARO`, `ROUNDROBIN`, or `DEFAULT`)
-- Trains using QMIX (only if using `DARO` scheduler)
-- Saves model as `qmix_trained_model.pth`
+This uses our YAML configuration (`/configs/config.yaml`) to:
+- Deploy a synthetic cluster (KWOK or Python)
+- Generate pod workloads based on task/pod distributions
+- Apply the selected scheduler (e.g., `ROUNDROBIN`, `DEFAULT`, or `DAROTRAIN`)
+- Save simulation traces and rewards (if enabled)
 
+
+**YAML Parameters for Simulation** include:
+
+**🔹 Cluster Parameters**
+- `cluster_type`, `cluster_reset`
+- `cluster_nodes`, `cluster_nodes_cpu_dist`, `cluster_nodes_mem_dist`
+
+**🔹 Workload Parameters**
+- `workload_tasks`
+- `workload_pods_number_dist`, `workload_pods_cpu_dist`, `workload_pods_mem_dist`
+- `workload_pods_interarrival_dist`, `workload_pods_duration_dist`, `workload_pods_max_restarts`
+
+**🔹 Scheduler Parameters**
+- `scheduler_type`
+
+**🔹 Simulation Settings**
+- `simulation_speedup`
+- `simulation_save_trace`, `simulation_detail_statistics`
+
+**🔹 Training Parameters**
+- `training_episodes`
+- `training_nodes_per_episode_min`, `training_nodes_per_episode_max`
+- `training_tasks_per_episode_min`, `training_tasks_per_episode_max`
 ---
 
-## Optional: Run a Single Simulation (Standalone Mode)
+##  Multi-Episode Training
 
-You can simulate a one-time workload outside of training:
+To launch MARL-based training using the **DAROTRAIN** scheduler:
 
 ```bash
-python3 simulation_controller.py cluster_descriptor.yaml workload_descriptor.yaml scheduler_descriptor.yaml
+python3 scripts/training_controller.py configs/config.yaml
 ```
 
-This is useful for testing or visualizing specific workload behavior.
+The training process will:
+- Randomize cluster size and workload per episode
+- Schedule pods using the DAROTRAIN (QMIX) agent
+- Train and update the agent using reward feedback
+- Save model weights (`qmix_latest.pth`) and logs
+
+**Additional YAML Parameters for Training**:
+- All `scheduler_daro_*` hyperparameters (learning rate, gamma, etc.)
 
 ---
 
-## Output Files
+##  Output Artifacts
 
-- `simulation_trace.txt`: Contains deployment and termination logs of each pod.
-- `cluster_info.txt` *(optional)*: Can be generated to record cluster specs.
-- `qmix_trained_model.pth`: Trained QMIX agent model (only for DARO scheduler).
-- `reward_trace.csv`: Contains rewards assigned to each node in every episode.
+| File                   | Description                                 |
+|------------------------|---------------------------------------------|
+| `simulation_trace.txt` | Deployment and termination events           |
+| `reward_trace.csv`     | Per-node reward values for each pod         |
+| `qmix_latest.pth`      | Trained QMIX model (only for DAROTRAIN)     |
+| `cluster_info.txt`     | Final cluster specification snapshot        |
 
 ---
 
-## Supported Distribution Formats
+## Configurable Components
 
-You can define distributions for **CPU**, **Memory**, **Interarrival**, and **Duration**:
+All settings are defined in a **single flattened YAML** (`configs/config.yaml`):
+
+- Cluster type, size, and node resource distributions
+- Workload task structure and pod arrival/duration/resource distributions
+- Scheduler type and parameters (including DAROTRAIN hyperparameters)
+- Simulation toggles and speed
+- Training episode counts and node/task ranges
+
+---
+
+##  Supported Schedulers
+
+| Scheduler     | Description                                     |
+|---------------|-------------------------------------------------|
+| `DEFAULT`     | Native Kubernetes (KWOK) scheduler               |
+| `ROUNDROBIN`  | Simple round-robin node selection               |
+| `DAROTRAIN`   | Decentralized RL scheduler using QMIX           |
+
+---
+
+##  Supported Distributions
+
+You can configure the following statistical distributions:
+- `fixed`, `normal`, `poisson`, `uniform`
+- Fields: CPU, memory, pod interarrival, duration, number of pods per task
 
 | Type     | Format Example |
 |----------|----------------|
@@ -134,15 +123,17 @@ You can define distributions for **CPU**, **Memory**, **Interarrival**, and **Du
 | Uniform  | `{type: uniform, min: 2, max: 8, round: 1}` |
 | Fixed    | `{type: fixed, value: 4}` |
 
-> `round` (optional): Rounds output to given decimal.  
-> Units:
-> - CPU: millicores
-> - Memory: Mi
-> - Time (Interarrival/Duration): seconds  
-> Kubernetes **expects integer memory values for pods**.
+Units:
+- CPU: millicores
+- Memory: Mi (Kubernetes expects integer memory values for pods)
+- Time (Interarrival/Duration): seconds  
 
+`round` (optional): Rounds output to given decimal.  
 
-## Contact
+---
 
-For questions or contributions, please contact the CUT team.
+##  Contact
+
+Developed and maintained by the **CUT**.  
+For issues or contributions, please contact us or submit a pull request.
 

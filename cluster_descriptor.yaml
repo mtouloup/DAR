@@ -1,8 +1,0 @@
-Cluster:
-  Type: Python  # KWOK or Python
-  Reset: True    # True: Clear existing cluster, False: Append to existing cluster
-  Nodes:
-    Number: 10    # Number of nodes
-    CPU Dist: {type: poisson, mean: 5000, min: 1000, max: 8000, round: -2} # in millicores
-    Mem Dist: {type: normal, mean: 6000, stdev: 2000, min: 2000, max: 8000, round: -1} # in Mi
- 

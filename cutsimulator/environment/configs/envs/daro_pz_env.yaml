@@ -1,0 +1,4 @@
+
+_target_: daro_pz_env.env_creator.env
+
+config_file: configs.yaml
