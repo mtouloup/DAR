@@ -5,13 +5,23 @@ A modular and extensible simulator for evaluating diverse pod scheduling strateg
 
 ---
 
-##  Prerequisites
+##  Installation
 
-- Python 3.8+
-- Install dependencies:
-  ```bash
-  pip install -r requirements.txt
-  ```
+Requires **Python 3.8+**. The simulator can be installed as a normal Python
+package:
+
+```bash
+pip install git+https://github.com/mtouloup/DAR.git
+```
+
+Alternatively, for local development run:
+
+```bash
+pip install -e .
+```
+
+The optional [KWOK](https://kwok.sigs.k8s.io/docs/user/installation/) binary is
+needed only for KWOK-based clusters.
 
 - For **KWOK-based clusters**:
   - Install [KWOK](https://kwok.sigs.k8s.io/docs/user/installation/)
